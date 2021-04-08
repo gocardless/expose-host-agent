@@ -1,0 +1,29 @@
+#!/bin/bash
+
+# Runs the args provided in a subprocess that is set up to use the host's SSH agent.
+
+# Set up tunnel to host's SSH agent
+sock=$(mktemp -u /tmp/sock.XXXXXX)
+if getent hosts host.docker.internal; then
+  # We're running on Docker for Mac
+  HOST="host.docker.internal"
+else
+  # We're running on linux
+  # forwarded-ssh-agent is injected by the `--add-host` option of `docker build`
+  HOST="forwarded-ssh-agent"
+fi
+socat unix-l:$sock,fork tcp:$HOST:24249 &
+pid=$!
+
+# Wait for connection
+sleep 0.5
+
+# Run the command provided, letting it make use of the host's SSH agent
+export SSH_AUTH_SOCK="$sock"
+eval "$@"
+eval_code=$?
+
+kill $pid
+
+# exit with eval exit code
+exit $eval_code

@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+set -eu -o pipefail
+
+function cleanup {
+  kill %1
+}
+
+# Tear down any left over socat instances that escaped from previous invocations
+if ps aux | grep -q "[s]ocat.*24249"; then
+  ps aux | grep "[s]ocat.*24249" | awk '{ print $2 }' | xargs kill
+fi
+
+# Bind the SSH agent unix socket to a TCP socket on the loopback interface
+# This allows processes inside a Docker build to use keys from the agent
+/usr/local/bin/socat tcp4-listen:24249,bind=127.0.0.1,reuseaddr,fork unix:${SSH_AUTH_SOCK} &
+
+# Tear down socat when we exit, either from a signal or by getting to the end of the script
+trap cleanup EXIT
+
+# Run the command we received in our arguments
+"$@"
