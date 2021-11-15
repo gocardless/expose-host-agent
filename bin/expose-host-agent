@@ -13,7 +13,7 @@ fi
 
 # Bind the SSH agent unix socket to a TCP socket on the loopback interface
 # This allows processes inside a Docker build to use keys from the agent
-/usr/local/bin/socat tcp4-listen:24249,bind=127.0.0.1,reuseaddr,fork unix:${SSH_AUTH_SOCK} &
+socat tcp4-listen:24249,bind=127.0.0.1,reuseaddr,fork unix:${SSH_AUTH_SOCK} &
 
 # Tear down socat when we exit, either from a signal or by getting to the end of the script
 trap cleanup EXIT
