@@ -7,6 +7,9 @@ sock=$(mktemp -u /tmp/sock.XXXXXX)
 if getent hosts host.docker.internal; then
   # We're running on Docker for Mac
   HOST="host.docker.internal"
+elif getent hosts host.lima.internal; then
+  # We're running on Lima
+  HOST="host.lima.internal"
 else
   # We're running on linux
   # forwarded-ssh-agent is injected by the `--add-host` option of `docker build`
